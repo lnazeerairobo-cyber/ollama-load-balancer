@@ -1,5 +1,5 @@
 from typing import Dict, Optional
-from .models import ServerMetrics
+from .models import ServerMetrics, GPUMetrics
 from . import config
 
 
@@ -21,6 +21,8 @@ class LoadBalancer:
         if key in self.servers:
             server = self.servers[key]
             server.active_requests = metrics_data.get("active_requests", 0)
+            server.gpus = [GPUMetrics(**gpu) for gpu in metrics_data.get("gpus", [])]
+            server.gpu_count = metrics_data.get("gpu_count", 0)
             server.gpu_utilization = metrics_data.get("gpu_utilization", 0)
             server.gpu_memory_used_gb = metrics_data.get("gpu_memory_used_gb", 0.0)
             server.gpu_memory_total_gb = metrics_data.get("gpu_memory_total_gb", 0.0)

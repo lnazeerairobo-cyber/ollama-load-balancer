@@ -4,6 +4,7 @@ import asyncio
 from .gpu import GPUMonitor
 from .ollama import get_active_requests
 from pydantic import BaseModel
+from typing import list
 
 app = FastAPI(title="GPU Monitor Sidecar")
 
@@ -27,8 +28,19 @@ async def poll_ollama():
         await asyncio.sleep(2)
 
 
+class GPUMetrics(BaseModel):
+    index: int
+    name: str
+    utilization: int
+    memory_used_gb: float
+    memory_total_gb: float
+    temperature: int
+
+
 class MetricsResponse(BaseModel):
     active_requests: int
+    gpus: list[GPUMetrics]
+    gpu_count: int
     gpu_utilization: int
     gpu_memory_used_gb: float
     gpu_memory_total_gb: float
@@ -40,6 +52,8 @@ async def metrics():
     gpu_metrics = gpu_monitor.get_metrics()
     return MetricsResponse(
         active_requests=cached_active_requests,
+        gpus=[GPUMetrics(**gpu) for gpu in gpu_metrics["gpus"]],
+        gpu_count=gpu_metrics["gpu_count"],
         gpu_utilization=gpu_metrics["gpu_utilization"],
         gpu_memory_used_gb=gpu_metrics["gpu_memory_used_gb"],
         gpu_memory_total_gb=gpu_metrics["gpu_memory_total_gb"],

@@ -78,7 +78,12 @@ async def list_servers():
                 "host": s.host,
                 "port": s.port,
                 "active_requests": s.active_requests,
+                "gpus": [gpu.model_dump() for gpu in s.gpus],
+                "gpu_count": s.gpu_count,
                 "gpu_utilization": s.gpu_utilization,
+                "gpu_memory_used_gb": s.gpu_memory_used_gb,
+                "gpu_memory_total_gb": s.gpu_memory_total_gb,
+                "gpu_temperature": s.gpu_temperature,
                 "is_healthy": s.is_healthy,
                 "score": s.score()
             }
