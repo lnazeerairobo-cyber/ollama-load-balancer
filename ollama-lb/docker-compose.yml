@@ -1,0 +1,85 @@
+services:
+  load-balancer:
+    build: ./load-balancer
+    ports:
+      - "11434:11434"
+    depends_on:
+      - ollama-1
+      - ollama-2
+    environment:
+      - OLLAMA_SERVERS=ollama-1:11434,ollama-2:11434
+    networks:
+      - ollama-network
+
+  ollama-1:
+    image: ollama/ollama:latest
+    ports:
+      - "11435:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - ollama-network
+
+  ollama-2:
+    image: ollama/ollama:latest
+    ports:
+      - "11436:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - ollama-network
+
+  gpu-monitor-1:
+    build: ./gpu-monitor
+    environment:
+      - OLLAMA_HOST=ollama-1
+      - OLLAMA_PORT=11434
+    depends_on:
+      - ollama-1
+    networks:
+      - ollama-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  gpu-monitor-2:
+    build: ./gpu-monitor
+    environment:
+      - OLLAMA_HOST=ollama-2
+      - OLLAMA_PORT=11434
+    depends_on:
+      - ollama-2
+    networks:
+      - ollama-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  ollama_models:
+
+networks:
+  ollama-network:
+    driver: bridge
